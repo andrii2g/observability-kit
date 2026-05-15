@@ -1,5 +1,3 @@
 # Tempo
 
-Phase 1 placeholder.
-
-Tempo configuration will be added in a later checkpoint.
+Phase 2 adds a local Tempo configuration for OTLP ingestion and Grafana querying.
