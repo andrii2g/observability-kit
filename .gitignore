@@ -1,0 +1,40 @@
+.env
+.DS_Store
+Thumbs.db
+
+# Editor and IDE settings
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+
+# Build outputs
+bin/
+obj/
+out/
+dist/
+artifacts/
+TestResults/
+
+# Node tooling
+node_modules/
+
+# Python tooling
+.venv/
+venv/
+__pycache__/
+
+# Local data and rendered config artifacts
+.data/
+tmp/
+rendered/
+
+# Docker and compose overrides
+compose.override.yml
