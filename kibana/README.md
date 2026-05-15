@@ -1,5 +1,5 @@
 # Kibana
 
-Phase 1 placeholder.
+Phase 5 establishes Kibana as the optional ELK log exploration UI.
 
-Optional ELK profile assets will be added in a later checkpoint.
+The `elk` profile starts Kibana alongside Elasticsearch. Saved objects are not preloaded yet; guidance and optional exports remain for the docs checkpoint.

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Phase 1 placeholder: ELK startup script will be implemented in a later checkpoint."
+export OTEL_COLLECTOR_CONFIG="/etc/otelcol/config.elk.yaml"
+
+docker compose --profile elk up -d

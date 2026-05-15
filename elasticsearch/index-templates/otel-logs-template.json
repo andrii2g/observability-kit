@@ -1,0 +1,35 @@
+{
+  "index_patterns": ["otel-logs-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "index.lifecycle.name": "otel-logs-ilm-policy"
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "@timestamp": { "type": "date" },
+        "body": { "type": "text" },
+        "severity_text": { "type": "keyword" },
+        "severity_number": { "type": "integer" },
+        "service.name": { "type": "keyword" },
+        "service.namespace": { "type": "keyword" },
+        "service.version": { "type": "keyword" },
+        "deployment.environment": { "type": "keyword" },
+        "trace_id": { "type": "keyword" },
+        "span_id": { "type": "keyword" },
+        "host.name": { "type": "keyword" },
+        "container.name": { "type": "keyword" },
+        "log.logger": { "type": "keyword" },
+        "http.request.method": { "type": "keyword" },
+        "http.route": { "type": "keyword" },
+        "http.response.status_code": { "type": "integer" },
+        "exception.type": { "type": "keyword" },
+        "exception.message": { "type": "text" },
+        "exception.stacktrace": { "type": "text" }
+      }
+    }
+  },
+  "priority": 100
+}

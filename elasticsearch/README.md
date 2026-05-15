@@ -1,5 +1,8 @@
 # Elasticsearch
 
-Phase 1 placeholder.
+Phase 5 adds the ELK profile assets for logs:
 
-Optional ELK profile assets will be added in a later checkpoint.
+- `index-templates/otel-logs-template.json`
+- `ilm-policies/otel-logs-ilm-policy.json`
+
+The current Compose profile starts Elasticsearch in local single-node mode with simplified security for development use.

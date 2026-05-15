@@ -1,5 +1,9 @@
 # Saved Objects
 
-Phase 1 placeholder.
+Reserved for optional saved objects exported from Kibana in later iterations.
 
-Kibana saved object guidance will be added in a later checkpoint.
+V1 relies on a manual data view for:
+
+```text
+otel-logs-*
+```
