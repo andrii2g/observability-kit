@@ -35,6 +35,11 @@ __pycache__/
 .data/
 tmp/
 rendered/
+.dotnet-home/
+.nuget-packages/
+.tmp-nuget/
 
 # Docker and compose overrides
 compose.override.yml
+
+.dotnet-home/

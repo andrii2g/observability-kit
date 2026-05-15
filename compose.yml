@@ -87,3 +87,23 @@ services:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
     ports:
       - "5601:5601"
+
+  dotnet-example-api:
+    build:
+      context: ./examples/dotnet-minimal-api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    profiles:
+      - examples
+    depends_on:
+      - otel-collector
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      Observability__OtlpEndpoint: http://otel-collector:4317
+      Observability__ServiceName: ${DOTNET_EXAMPLE_SERVICE_NAME:-observability-kit-example-api}
+      Observability__Environment: ${DOTNET_EXAMPLE_ENVIRONMENT:-dev}
+      OTEL_SERVICE_NAME: ${DOTNET_EXAMPLE_SERVICE_NAME:-observability-kit-example-api}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${DOTNET_EXAMPLE_OTLP_ENDPOINT:-http://otel-collector:4317}
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment=${DOTNET_EXAMPLE_ENVIRONMENT:-dev},service.namespace=a2g
+    ports:
+      - "8080:8080"
