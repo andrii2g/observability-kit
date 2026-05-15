@@ -1,5 +1,7 @@
 # Grafana
 
-Phase 1 placeholder.
+Phase 3 adds:
 
-Grafana provisioning and dashboards will be added in later checkpoints.
+- provisioned Prometheus and Tempo datasources
+- file-based dashboard provisioning
+- initial dashboards for service overview, .NET runtime, HTTP APIs, and background jobs
