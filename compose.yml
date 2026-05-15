@@ -76,6 +76,32 @@ services:
     ports:
       - "9200:9200"
 
+  elasticsearch-init:
+    image: curlimages/curl:8.10.1
+    restart: "no"
+    profiles:
+      - elk
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ./elasticsearch/index-templates/otel-logs-template.json:/bootstrap/otel-logs-template.json:ro
+      - ./elasticsearch/ilm-policies/otel-logs-ilm-policy.json:/bootstrap/otel-logs-ilm-policy.json:ro
+    command:
+      - sh
+      - -ec
+      - |
+        until curl --fail --silent http://elasticsearch:9200 >/dev/null; do
+          echo "Waiting for Elasticsearch..."
+          sleep 5
+        done
+        curl --fail --silent --show-error -X PUT http://elasticsearch:9200/_ilm/policy/otel-logs-ilm-policy \
+          -H 'Content-Type: application/json' \
+          --data-binary @/bootstrap/otel-logs-ilm-policy.json
+        curl --fail --silent --show-error -X PUT http://elasticsearch:9200/_index_template/otel-logs-template \
+          -H 'Content-Type: application/json' \
+          --data-binary @/bootstrap/otel-logs-template.json
+        echo "Elasticsearch ILM policy and index template applied."
+
   kibana:
     image: docker.elastic.co/kibana/kibana:${ELASTIC_VERSION:-8.15.0}
     restart: unless-stopped
@@ -83,6 +109,8 @@ services:
       - elk
     depends_on:
       - elasticsearch
+      elasticsearch-init:
+        condition: service_completed_successfully
     environment:
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
     ports:

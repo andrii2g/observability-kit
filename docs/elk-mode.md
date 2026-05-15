@@ -24,6 +24,7 @@ Do not treat bare `docker compose --profile elk up -d` as the supported ELK star
 - host/container OTLP endpoint rules do not change
 - logs are exported to Elasticsearch
 - Kibana becomes the main log exploration UI
+- Compose also runs an ELK bootstrap step that applies the ILM policy and index template automatically
 
 ## Kibana Data View
 
@@ -32,6 +33,11 @@ Use:
 ```text
 otel-logs-*
 ```
+
+Bootstrap artifacts applied automatically:
+
+- `elasticsearch/ilm-policies/otel-logs-ilm-policy.json`
+- `elasticsearch/index-templates/otel-logs-template.json`
 
 ## Common Searches
 

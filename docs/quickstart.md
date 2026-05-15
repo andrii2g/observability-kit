@@ -42,6 +42,8 @@ Open:
 - Elasticsearch: http://localhost:9200
 - Kibana: http://localhost:5601
 
+The ELK startup path also applies the repository's Elasticsearch ILM policy and index template automatically.
+
 ## Stop And Reset
 
 ```bash
