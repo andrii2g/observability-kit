@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Phase 1 placeholder: config validation script will be implemented in a later checkpoint."
+mkdir -p rendered
+
+docker compose config > rendered/observability-kit-compose.rendered.yml
+OTEL_COLLECTOR_CONFIG=/etc/otelcol/config.elk.yaml docker compose --profile elk config > rendered/observability-kit-compose-elk.rendered.yml
+
+echo "Compose config is valid for core and ELK modes"
