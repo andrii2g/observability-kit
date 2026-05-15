@@ -1,22 +1,201 @@
 groups:
   - name: service-health
     rules:
-      - alert: PrometheusTargetMissing
+      - alert: ServiceDown
         expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service target is down"
+          description: "A Prometheus scrape target has been unavailable for more than 5 minutes."
+
+      - alert: NoTelemetryReceived
+        expr: sum(rate(http_server_request_duration_count[15m])) == 0 and sum(rate(app_requests_processed[15m])) == 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No telemetry received recently"
+          description: "No HTTP or application request metrics have been observed during the last 15 minutes."
+
+      - alert: ServiceRestartingFrequently
+        expr: changes(process_runtime_dotnet_gc_collections_count[30m]) == 0 and sum(rate(http_server_request_duration_count[30m])) > 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Service runtime metrics look abnormal"
+          description: "Traffic is present but expected runtime signals are missing or flat, which may indicate service instability."
+
+  - name: http-api
+    rules:
+      - alert: HighHttp5xxRate
+        expr: sum(rate(http_server_request_duration_count{http_response_status_code=~"5.."}[5m])) / clamp_min(sum(rate(http_server_request_duration_count[5m])), 1) > 0.05
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High HTTP 5xx rate"
+          description: "More than 5% of HTTP requests are returning 5xx responses."
+
+      - alert: HighHttp4xxRate
+        expr: sum(rate(http_server_request_duration_count{http_response_status_code=~"4.."}[5m])) / clamp_min(sum(rate(http_server_request_duration_count[5m])), 1) > 0.20
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High HTTP 4xx rate"
+          description: "More than 20% of HTTP requests are returning 4xx responses."
+
+      - alert: HighP95Latency
+        expr: histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_bucket[5m]))) > 1.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High P95 latency"
+          description: "P95 HTTP latency is above 1.5 seconds."
+
+      - alert: NoSuccessfulRequests
+        expr: sum(rate(http_server_request_duration_count{http_response_status_code!~"5.."}[10m])) == 0 and sum(rate(http_server_request_duration_count[10m])) > 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No successful HTTP requests"
+          description: "Requests are being received, but none have completed successfully in the last 10 minutes."
+
+  - name: runtime
+    rules:
+      - alert: HighCpuUsage
+        expr: rate(process_cpu_time[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "Process CPU time consumption is elevated."
+
+      - alert: HighMemoryUsage
+        expr: process_memory_usage > 536870912
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Process memory usage is above 512 MiB."
+
+      - alert: FrequentGcCollections
+        expr: rate(process_runtime_dotnet_gc_collections_count[5m]) > 5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Frequent GC collections"
+          description: "The .NET runtime is performing GC collections at an elevated rate."
+
+      - alert: HighThreadPoolQueue
+        expr: process_runtime_dotnet_thread_pool_queue_length > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High thread pool queue length"
+          description: "The .NET thread pool queue is backing up."
+
+      - alert: HighExceptionRate
+        expr: rate(process_runtime_dotnet_exceptions_count[5m]) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High exception rate"
+          description: "The .NET process is throwing exceptions at an elevated rate."
+
+  - name: queue-jobs
+    rules:
+      - alert: QueueBacklogGrowing
+        expr: app_queue_items_pending > 25
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Queue backlog growing"
+          description: "Pending queue items are above the local development threshold."
+
+      - alert: HighJobFailureRate
+        expr: rate(app_jobs_failed[10m]) / clamp_min(rate(app_jobs_processed[10m]) + rate(app_jobs_failed[10m]), 1) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High job failure rate"
+          description: "More than 10% of observed jobs are failing."
+
+      - alert: NoJobsProcessedRecently
+        expr: rate(app_jobs_processed[30m]) == 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No jobs processed recently"
+          description: "No successful background jobs have been processed in the last 30 minutes."
+
+      - alert: DeadLetterMessagesDetected
+        expr: increase(app_jobs_deadletter_count[15m]) > 0
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "Prometheus target is down"
-          description: "A configured scrape target has been unavailable for more than 5 minutes."
+          summary: "Dead-letter messages detected"
+          description: "Background jobs have been moved to dead-letter handling."
 
   - name: collector
     rules:
       - alert: OtelCollectorExporterFailures
-        expr: increase(otelcol_exporter_send_failed_spans[5m]) > 0
+        expr: increase(otelcol_exporter_send_failed_spans[5m]) > 0 or increase(otelcol_exporter_send_failed_log_records[5m]) > 0 or increase(otelcol_exporter_send_failed_metric_points[5m]) > 0
         for: 5m
         labels:
           severity: warning
         annotations:
           summary: "Collector exporter failures detected"
-          description: "The OpenTelemetry Collector failed to send one or more spans during the last 5 minutes."
+          description: "The OpenTelemetry Collector failed to send telemetry during the last 5 minutes."
+
+      - alert: OtelCollectorDroppedSpans
+        expr: increase(otelcol_processor_dropped_spans[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Collector dropped spans"
+          description: "The OpenTelemetry Collector dropped spans during processing."
+
+      - alert: OtelCollectorDroppedMetricPoints
+        expr: increase(otelcol_processor_dropped_metric_points[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Collector dropped metric points"
+          description: "The OpenTelemetry Collector dropped metric points during processing."
+
+      - alert: OtelCollectorDroppedLogs
+        expr: increase(otelcol_processor_dropped_log_records[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Collector dropped logs"
+          description: "The OpenTelemetry Collector dropped log records during processing."
+
+  - name: host
+    rules:
+      - alert: PrometheusTargetMissing
+        expr: up{job="prometheus"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Prometheus self-scrape target missing"
+          description: "Prometheus is not successfully scraping itself."
