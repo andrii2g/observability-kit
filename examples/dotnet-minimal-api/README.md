@@ -1,5 +1,26 @@
 # Dotnet Minimal API Example
 
-Phase 1 placeholder.
+This example is the Phase 4 sample service for `observability-kit`.
 
-The example service project will be added in a later checkpoint.
+## Runtime Endpoints
+
+Host execution uses:
+
+```text
+http://localhost:4317
+```
+
+Docker Compose execution uses:
+
+```text
+http://otel-collector:4317
+```
+
+## Example Endpoints
+
+- `GET /health`
+- `GET /api/work`
+- `GET /api/fail`
+- `GET /api/slow`
+- `GET /api/dependency`
+- `POST /api/jobs`
