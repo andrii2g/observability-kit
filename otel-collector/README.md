@@ -1,5 +1,12 @@
 # OpenTelemetry Collector
 
-Phase 1 placeholder.
+Core collector configuration is available for Phase 2:
 
-Collector configuration files will be added in a later checkpoint.
+- `config.default.yaml` for the default stack
+- `config.elk.yaml` for the optional ELK profile
+
+The active config is selected by:
+
+```text
+OTEL_COLLECTOR_CONFIG
+```
