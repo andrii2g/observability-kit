@@ -1,0 +1,22 @@
+groups:
+  - name: service-health
+    rules:
+      - alert: PrometheusTargetMissing
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Prometheus target is down"
+          description: "A configured scrape target has been unavailable for more than 5 minutes."
+
+  - name: collector
+    rules:
+      - alert: OtelCollectorExporterFailures
+        expr: increase(otelcol_exporter_send_failed_spans[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Collector exporter failures detected"
+          description: "The OpenTelemetry Collector failed to send one or more spans during the last 5 minutes."

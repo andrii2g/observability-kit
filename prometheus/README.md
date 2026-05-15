@@ -1,5 +1,6 @@
 # Prometheus
 
-Phase 1 placeholder.
+Phase 2 adds:
 
-Prometheus configuration and alert rules will be added in a later checkpoint.
+- `prometheus.yml` with core scrape targets
+- `alerts.yml` with initial alert rules
