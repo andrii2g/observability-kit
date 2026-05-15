@@ -8,7 +8,7 @@ jobs:
   validate-compose:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Validate core compose config
         run: docker compose config
       - name: Validate ELK compose config
@@ -17,8 +17,8 @@ jobs:
   build-dotnet-example:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
       - name: Build .NET example
@@ -27,7 +27,7 @@ jobs:
   markdown-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
