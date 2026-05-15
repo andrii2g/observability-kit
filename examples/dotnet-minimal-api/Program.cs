@@ -239,17 +239,46 @@ app.MapPost("/api/jobs", async (ExampleTelemetry telemetry, ILoggerFactory logge
 
     Interlocked.Increment(ref telemetry.PendingQueueItems);
     var startedAt = Stopwatch.GetTimestamp();
+    var retryCount = Random.Shared.Next(0, 3);
+    var moveToDeadLetter = Random.Shared.Next(0, 10) == 0;
 
     try
     {
+        if (retryCount > 0)
+        {
+            telemetry.JobRetries.Add(
+                retryCount,
+                new TagList
+                {
+                    { "job.type", "sample" }
+                });
+            logger.LogInformation("Simulating {RetryCount} retries for sample job", retryCount);
+        }
+
         await Task.Delay(Random.Shared.Next(150, 1200), cancellationToken);
+
+        if (moveToDeadLetter)
+        {
+            telemetry.JobDeadLetters.Add(
+                1,
+                new TagList
+                {
+                    { "job.type", "sample" }
+                });
+            telemetry.JobsFailed.Add(1, new("job.type", "sample"), new("result", "dead-letter"), new("error.type", "DeadLetter"));
+            logger.LogWarning("Sample job moved to dead-letter handling");
+
+            return Results.StatusCode(StatusCodes.Status202Accepted);
+        }
+
         telemetry.JobsProcessed.Add(1, new("job.type", "sample"), new("result", "success"));
         logger.LogInformation("Background job processed successfully");
 
         return Results.Accepted("/api/jobs", new
         {
             result = "accepted",
-            jobType = "sample"
+            jobType = "sample",
+            retries = retryCount
         });
     }
     catch (Exception ex)
@@ -324,6 +353,8 @@ internal sealed class ExampleTelemetry
         JobsProcessed = _meter.CreateCounter<long>("app.jobs.processed");
         JobsFailed = _meter.CreateCounter<long>("app.jobs.failed");
         JobDuration = _meter.CreateHistogram<double>("app.jobs.duration", unit: "ms");
+        JobRetries = _meter.CreateCounter<long>("app.jobs.retry.count");
+        JobDeadLetters = _meter.CreateCounter<long>("app.jobs.deadletter.count");
         ExternalDependencyDuration = _meter.CreateHistogram<double>("app.external_dependency.duration", unit: "ms");
         _meter.CreateObservableGauge("app.queue.items.pending", () => PendingQueueItems);
     }
@@ -335,6 +366,8 @@ internal sealed class ExampleTelemetry
     public Counter<long> JobsProcessed { get; }
     public Counter<long> JobsFailed { get; }
     public Histogram<double> JobDuration { get; }
+    public Counter<long> JobRetries { get; }
+    public Counter<long> JobDeadLetters { get; }
     public Histogram<double> ExternalDependencyDuration { get; }
     public long PendingQueueItems;
 }
