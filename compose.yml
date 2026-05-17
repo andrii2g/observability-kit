@@ -108,7 +108,8 @@ services:
     profiles:
       - elk
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_started
       elasticsearch-init:
         condition: service_completed_successfully
     environment:
