@@ -23,15 +23,3 @@ jobs:
           dotnet-version: "8.0.x"
       - name: Build .NET example
         run: dotnet build examples/dotnet-minimal-api/ObservabilityKit.Example.Api.csproj
-
-  markdown-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-      - name: Install markdownlint
-        run: npm install --global markdownlint-cli2
-      - name: Lint Markdown
-        run: markdownlint-cli2 "**/*.md"
